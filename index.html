@@ -5,6 +5,8 @@
   <title>Class X-B AI Bots</title>
   <link rel="stylesheet" href="styles.css">
   <style>
+
+    
     /* make full page scrollable */
 html, body {
   height: 100%;
@@ -89,6 +91,115 @@ html, body {
 
   .bot-card p {
     font-size: 1rem;             /* ✅ Bigger subject text */
+  }
+}
+/* ===== Page base ===== */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #fff;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* ===== Header ===== */
+.header {
+  text-align: center;
+  padding: 4rem 1rem;              /* 🔥 aur bada padding */
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header h1 {
+  font-size: 4.5rem;               /* 🔥 huge title */
+  margin: 0 0 2.5rem 0;
+}
+.header input {
+  width: 92%;
+  padding: 2.8rem;                 /* 🔥 bada search box */
+  border-radius: 60px;
+  border: none;
+  font-size: 2.6rem;               /* 🔥 bada input text */
+  outline: none;
+}
+.suggestion {
+  margin-top: 1.5rem;
+  font-size: 2.4rem;               /* 🔥 bada suggestion text */
+}
+
+/* ===== Bot Grid ===== */
+.bot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); /* 🔥 huge card size */
+  gap: 3rem;
+  padding: 3rem;
+}
+
+/* ===== Bot Card ===== */
+.bot-card {
+  background: rgba(223, 42, 42, 0.1);
+  border-radius: 40px;             /* 🔥 zyada rounded */
+  padding: 4rem;
+  text-align: center;
+  cursor: pointer;
+}
+P{
+  color:white;
+}
+.bot-card img {
+  width: 260px;                    /* 🔥 super bada image */
+  height: 260px;
+  border-radius: 50%;
+  margin-bottom: 2.5rem;
+  border: 5px solid #fff;
+}
+.bot-card h3 {
+  font-size: 3.2rem;               /* 🔥 bada bot name */
+  margin: 1.5rem 0;
+}
+.bot-card p {
+  font-size: 2.6rem;               /* 🔥 bada subject */
+  opacity: 0.95;
+  margin: 0;
+}
+
+/* ===== Mobile Full Width Big Cards ===== */
+@media (max-width: 768px) {
+  .bot-grid {
+    grid-template-columns: 1fr;    /* ✅ one card per row */
+  }
+
+  .bot-card {
+    width: 95%;
+    margin: 0 auto;
+    padding: 4.5rem;               /* 🔥 aur bada padding */
+  }
+
+  .bot-card img {
+    width: 300px;                  /* 🔥 super size mobile */
+    height: 300px;
+  }
+
+  .bot-card h3 {
+    font-size: 3.6rem;
+  }
+
+  .bot-card p {
+    font-size: 3rem;
+  }
+
+  .header h1 {
+    font-size: 5rem;
+  }
+
+  .header input {
+    font-size: 3rem;
+    padding: 3rem;
   }
 }
 
