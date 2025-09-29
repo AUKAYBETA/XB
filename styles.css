@@ -913,3 +913,39 @@ html, body {
 
 
 
+/* ✅ Make sure chat area never gets hidden behind keyboard */
+.chat-box {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  padding-bottom: 90px; /* space for input bar */
+  box-sizing: border-box;
+}
+
+/* ✅ Input bar styling */
+.input-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  background: #0a0112;
+  border-top: 1px solid #ccc;
+  z-index: 1000;
+}
+
+/* ✅ Input should be responsive and never hidden */
+
+
+
+/* ✅ Mobile fix */
+@media (max-width: 768px) {
+  .input-bar {
+    padding: 0.6rem;
+  }
+  .chat-box {
+    padding-bottom: 110px; /* more space so input never overlaps */
+  }
+}
