@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bot Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+        <link href="styles.css" rel="stylesheet">
+
+    <style>
+    
+
+    </style>
+</head>
+<body>
+    <header class="chat-header">
+        <button id="backBtn" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;">⬅</button>
+        <img id="botImg" src="" alt="Bot">
+        <div>
+            <h2 id="botName">Bot</h2>
+            <p id="botSubject">Subject</p>
+        </div>
+    </header>
+
+    <main class="chat-box" id="chatBox"></main>
+
+    <div class="input-bar">
+        <input id="userInput" type="text" placeholder="Type a message...">
+        <button id="sendBtn">Send</button>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/lib/marked.umd.min.js"></script>
+<script>
+    const { marked } = window;
+    
+    // =================================================================
+    // ==== 🚨 CRITICAL: PLACE YOUR KEY HERE FOR PERSONAL USE 🚨 ====
+    // =================================================================
+    const GEMINI_KEYS = [
+        "AIzaSyBN-fjB8v7_sDaDezl1qTB5sfJ92crQsXQ" // <-- PASTE YOUR KEY HERE
+    ];
+    let keyIndex = 0;
+    function getKey() {
+        const k = GEMINI_KEYS[keyIndex];
+        keyIndex = (keyIndex + 1) % GEMINI_KEYS.length;
+        return k;
+    }
+    // =================================================================
+
+
+    // ==== Load selected bot and DOM elements ====
+    const bot = JSON.parse(localStorage.getItem("selectedBot")) || {
+        image: "default.png",
+        name: "Assistant",
+        subject: "General",
+        system: "You are a helpful AI assistant."
+    };
+    
+    const chatBox = document.getElementById("chatBox");
+    const input = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const backBtn = document.getElementById("backBtn");
+
+    document.getElementById("botImg").src = bot.image;
+    document.getElementById("botName").textContent = bot.name;
+    document.getElementById("botSubject").textContent = bot.subject;
+    
+    backBtn.addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+
+    // ==== Conversation State and Helpers ====
+    let history = [];
+    let isSending = false;
+
+    function autoScroll() {
+        requestAnimationFrame(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    }
+
+    function formatMessage(text) {
+        return marked.parse(text); 
+    }
+
+    function appendMessage(role, text) {
+        const div = document.createElement("div");
+        div.className = "message " + role;
+        
+        if (role === 'bot') {
+            div.innerHTML = formatMessage(text);
+        } else {
+            div.innerHTML = text.replace(/\n/g, "<br>");
+        }
+
+        chatBox.appendChild(div);
+        autoScroll();
+    }
+
+    function showTyping() {
+        if (document.getElementById("typing")) return;
+        const div = document.createElement("div");
+        div.className = "message bot typing";
+        div.id = "typing";
+        div.innerHTML = `
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+        `;
+        chatBox.appendChild(div);
+        autoScroll();
+    }
+
+    function removeTyping() {
+        const typingDiv = document.getElementById("typing");
+        if (typingDiv) typingDiv.remove();
+        autoScroll();
+    }
+
+    function toggleInputState(disabled) {
+        input.disabled = disabled;
+        sendBtn.disabled = disabled;
+        isSending = disabled;
+        if (!disabled) {
+            input.focus();
+        }
+    }
+
+    // ==== Gemini API Call (Restored for personal use) ====
+    async function callGemini(systemPrompt, conversation) {
+        try {
+            const body = {
+                systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
+                contents: conversation,
+                generationConfig: { temperature: 0.7, maxOutputTokens: 800 } // Increased token limit
+            };
+
+            const key = getKey();
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                // Improved error handling
+                const errorData = await res.json().catch(() => ({}));
+                const errorMessage = errorData.error?.message || res.statusText || "Unknown error.";
+                
+                if (res.status === 429) return "⚠️ Too many requests (429). Please wait.";
+                if (res.status === 400 && errorMessage.includes('API key not valid')) return "⚠️ Invalid API Key. Please check the key in the code.";
+                
+                throw new Error(`API Error: ${res.status} - ${errorMessage}`);
+            }
+
+            const data = await res.json();
+
+            if (data?.candidates?.length > 0) {
+                const parts = data.candidates[0]?.content?.parts || [];
+                return parts.map(p => p.text || "").join(" ").trim() || "⚠️ Empty reply.";
+            }
+
+            return "⚠️ No valid response from Gemini.";
+        } catch (e) {
+            console.error("Network or API error:", e);
+            return "⚠️ Connection Error: " + e.message;
+        }
+    }
+
+
+    // ==== Send Flow ====
+    async function sendMessage() {
+        if (isSending) return;
+
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        appendMessage("user", msg);
+        input.value = "";
+        toggleInputState(true);
+
+        history.push({ role: "user", parts: [{ text: msg }] });
+
+        showTyping();
+        
+        let reply = "";
+        try {
+            reply = await callGemini(bot.system, history);
+        } catch (e) {
+            // This catch is mostly for unhandled network errors, callGemini handles most API errors
+            console.error("Critical Send Error:", e);
+            reply = "⚠️ Fatal Error during API call process.";
+        } finally {
+            removeTyping();
+            toggleInputState(false);
+        }
+        
+        // Append the final reply (even if it's an error message)
+        appendMessage("bot", reply);
+        
+        // Add model response to history regardless of success to maintain turn structure
+        history.push({ role: "model", parts: [{ text: reply }] });
+    }
+
+    sendBtn.onclick = sendMessage;
+    input.addEventListener("keypress", e => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+</script>
+</body>
+</html>
