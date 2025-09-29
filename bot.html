@@ -211,6 +211,17 @@
             sendMessage();
         }
     });
+// Prevent unwanted auto-scroll on input focus in mobile
+input.addEventListener("focus", () => {
+  setTimeout(() => {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }, 300);
+});
+
+// Adjust on window resize (keyboard open/close)
+window.addEventListener("resize", () => {
+  chatBox.scrollTop = chatBox.scrollHeight;
+});
 
 </script>
 </body>
